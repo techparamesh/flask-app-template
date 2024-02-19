@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Dochmester{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('uploadButton').addEventListener('click', function() {
+        document.getElementById('fileInput').click();
+    });
+
+    document.getElementById('fileInput').addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            document.getElementById('loading').style.display = 'block'; // Show loading animation
+
+            fetch('/translate_file', { // Ensure you have a '/translate_file' route in Flask handling file uploads
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => response.blob())
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                document.getElementById('downloadLink').href = url;
+                document.getElementById('downloadLink').download = 'translated_file.txt';
+                document.getElementById('downloadLink').style.display = 'inline-block';
+                document.getElementById('loading').style.display = 'none'; // Hide loading animation
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                document.getElementById('loading').style.display = 'none'; // Hide loading animation
+            });
+        }
+    });
+});
+</script>
+{% endblock %}
+
+{% block main_content %}
+<div class="container mt-4">
+    <h1>Text Translator</h1>
+    <div class="row">
+        <div class="col-md-6">
+            <h2>Upload Text File</h2>
+            <input type="file" id="fileInput" class="form-control" style="display: none;" accept=".txt">
+            <button id="uploadButton" class="btn btn-primary mt-2">Upload File</button>
+        </div>
+        <div class="col-md-6">
+            <h2>Download Translated File</h2>
+            <a id="downloadLink" style="display: none;" class="btn btn-success mt-2">Download Translated File</a>
+            <div id="loading" class="text-center" style="display: none;">
+                <!-- Bootstrap Spinner for Loading Animation -->
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Processing...</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
